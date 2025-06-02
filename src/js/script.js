@@ -1,3 +1,9 @@
+const canvas = document.getElementById('physicsCanvas');
+const ctx = canvas.getContext('2d');
+let cargas = [];
+let cargaPositivaImg, cargaNegativaImg;
+
+
 function Matrix(entries) {
         this.entries = entries
         this.rows = this.entries.length
@@ -97,87 +103,156 @@ function Matrix(entries) {
       }
 
 class CoordinateSystem {
-        constructor(canvas) {
-          this.canvas = canvas
-          this.context = this.canvas.getContext('2d')
-          this.settings = {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.context = this.canvas.getContext('2d');
+        this.settings = {
             gridLines: {
-              major: {
-                spacing: 1,
-                color: '#555',
-                width: 0.5,
-              },
-              minor: {
-                spacing: 0.25,
-                color: '#777',
-                width: 0.25,
-              },
+                major: {
+                    spacing: 1,
+                    color: '#555',
+                    width: 0.5,
+                },
+                minor: {
+                    spacing: 0.25,
+                    color: '#777',
+                    width: 0.25,
+                },
             },
             backgroundColor: '#dadada',
             axes: {
-              color: 'black',
-              width: 2,
-              labelColor: 'black',
+                color: 'black',
+                width: 2,
+                labelColor: 'black',
             },
             border: {
-              color: 'black',
-              width: 5,
+                color: 'black',
+                width: 5,
             },
-          }
+        };
 
-          this.zoomLevel = 1
-          this.zoomMatrix = new Matrix([
+        this.zoomLevel = 1;
+        this.zoomMatrix = new Matrix([
             [100, 0],
             [0, 100],
-          ])
-          this.translation = new Matrix([[1], [1]])
+        ]);
+        this.translation = new Matrix([[1], [1]]);
 
-          const mouseState = {
+        // Variables para las cargas
+        this.cargas = [];
+        this.cargaPositivaImg = new Image();
+        this.cargaNegativaImg = new Image();
+        this.loadChargeImages();
+
+        // Eventos del mouse
+        const mouseState = {
             pressed: false,
             prevPosistion: null,
-          }
+        };
 
-          this.canvas.addEventListener('mousedown', e => {
-            mouseState.pressed = true
-          })
+        this.canvas.addEventListener('mousedown', e => {
+            mouseState.pressed = true;
+        });
 
-          this.canvas.addEventListener('mouseup', e => {
-            mouseState.pressed = false
-          })
+        this.canvas.addEventListener('mouseup', e => {
+            mouseState.pressed = false;
+        });
 
-          this.canvas.addEventListener('mouseleave', e => {
-            mouseState.pressed = false
-          })
+        this.canvas.addEventListener('mouseleave', e => {
+            mouseState.pressed = false;
+        });
 
-          this.canvas.addEventListener('mousemove', e => {
-            const x = e.offsetX
-            const y = e.offsetY
+        this.canvas.addEventListener('mousemove', e => {
+            const x = e.offsetX;
+            const y = e.offsetY;
 
             if (mouseState.pressed && mouseState.prevPosistion) {
-              const currentPosition = this.fromCanvasCoords(x, y)
-              const prevPosistion = this.fromCanvasCoords(
-                mouseState.prevPosistion[0],
-                mouseState.prevPosistion[1]
-              )
+                const currentPosition = this.fromCanvasCoords(x, y);
+                const prevPosistion = this.fromCanvasCoords(
+                    mouseState.prevPosistion[0],
+                    mouseState.prevPosistion[1]
+                );
 
-              this.translate(
-                currentPosition[0] - prevPosistion[0],
-                currentPosition[1] - prevPosistion[1]
-              )
+                this.translate(
+                    currentPosition[0] - prevPosistion[0],
+                    currentPosition[1] - prevPosistion[1]
+                );
             }
-            mouseState.prevPosistion = [x, y]
-          })
+            mouseState.prevPosistion = [x, y];
+        });
 
-          this.canvas.addEventListener('mousewheel', e => {
-            e.preventDefault()
-            const x = e.offsetX
-            const y = e.offsetY
-            const zoomFactor = 0.001 * e.wheelDelta
-            this.zoom(zoomFactor, x, y)
-          })
+        this.canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            const x = e.offsetX;
+            const y = e.offsetY;
+            const zoomFactor = 0.001 * e.deltaY;
+            this.zoom(zoomFactor, x, y);
+        });
 
-          this.draw()
-        }
+        this.draw();
+    }
+
+    // Cargar imágenes de las cargas
+    loadChargeImages() {
+        // SVG para carga positiva (+)
+        this.cargaPositivaImg.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <path fill="red" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM232 344V280H168c-13.3 0-24-10.7-24-24s10.7-24 24-24h64V168c0-13.3 10.7-24 24-24s24 10.7 24 24v64h64c13.3 0 24 10.7 24 24s-10.7 24-24 24H280v64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"/>
+            </svg>
+        `);
+        
+        // SVG para carga negativa (-)
+        this.cargaNegativaImg.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <path fill="blue" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM184 232H328c13.3 0 24 10.7 24 24s-10.7 24-24 24H184c-13.3 0-24-10.7-24-24s10.7-24 24-24z"/>
+            </svg>
+        `);
+    }
+
+    // Actualizar las cargas desde el formulario
+    updateCargasFromForm() {
+        this.cargas = [];
+        document.querySelectorAll('.carga-div').forEach((div, index) => {
+            const valorInput = div.querySelector('input[type="number"]:not([id*="cordinate"])');
+            const xInput = div.querySelector('input[id^="x-cordinate"]');
+            const yInput = div.querySelector('input[id^="y-cordinate"]');
+            
+            this.cargas.push({
+                valor: parseFloat(valorInput.value),
+                x: parseFloat(xInput.value),
+                y: parseFloat(yInput.value),
+                id: index + 1
+            });
+        });
+    }
+
+    // Dibujar las cargas en el canvas
+    drawCargas() {
+        if (!this.cargaPositivaImg.complete || !this.cargaNegativaImg.complete) return;
+
+        this.cargas.forEach(carga => {
+            const coords = this.canvasCoords(carga.x, carga.y);
+            const x = coords[0];
+            const y = coords[1];
+            const size = 30 * (1 / this.zoomLevel); // Tamaño ajustado al zoom
+
+            // Seleccionar imagen según el signo de la carga
+            const img = carga.valor >= 0 ? this.cargaPositivaImg : this.cargaNegativaImg;
+            
+            // Dibujar icono SVG
+            this.context.drawImage(img, x - size/2, y - size/2, size, size);
+            
+            // Dibujar etiqueta
+            this.context.fillStyle = 'black';
+            this.context.font = `${12 * (1 / this.zoomLevel)}px Arial`;
+            this.context.textAlign = 'center';
+            this.context.fillText(
+                `Carga ${carga.id}`,
+                x,
+                y + size/2 + 15 * (1 / this.zoomLevel)
+            );
+        });
+    }
 
         drawGridlines() {
           this.context.beginPath()
@@ -290,15 +365,17 @@ class CoordinateSystem {
         }
 
         draw() {
-          this.context.fillStyle = this.settings.backgroundColor
-          this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
-          this.context.strokeStyle = this.settings.border.color
-          this.context.lineWidth = this.settings.border.width
-          this.context.strokeRect(0, 0, this.canvas.width, this.canvas.height)
-          this.drawGridlines()
-          this.drawAxes()
-          this.drawTickLabels()
+          this.context.fillStyle = this.settings.backgroundColor;
+          this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+          this.context.strokeStyle = this.settings.border.color;
+          this.context.lineWidth = this.settings.border.width;
+          this.context.strokeRect(0, 0, this.canvas.width, this.canvas.height);
+          this.drawGridlines();
+          this.drawAxes();
+          this.drawTickLabels();
+          this.drawCargas(); // Añadido para dibujar las cargas
         }
+
 
         canvasCoords(x, y) {
           const point = new Matrix([[x], [y]])
@@ -360,11 +437,7 @@ class CoordinateSystem {
         }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-      const canvas = document.getElementById("physicsCanvas");
-      const grid = new CoordinateSystem(canvas);
-      
-});
+
 
 window.addEventListener('load', function() {
         const canvas = document.getElementById('physicsCanvas');
@@ -382,13 +455,26 @@ window.addEventListener('load', function() {
         // Aquí iría el resto de tu código para el simulador
 })
 
-
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.getElementById("physicsCanvas");
+    const grid = new CoordinateSystem(canvas);
+    
+    // Redimensionar canvas
+    function resizeCanvas() {
+        const container = canvas.parentElement;
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+        grid.draw();
+    }
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Configurar eventos para el formulario de cargas
     const addChargeBtn = document.getElementById('addChargeBtn');
     const chargesContainer = document.getElementById('chargesContainer');
     let chargeCount = 1;
 
-    // Función para añadir nueva carga
     addChargeBtn.addEventListener('click', function() {
         const newChargeDiv = document.createElement('div');
         newChargeDiv.className = 'carga-div';
@@ -412,9 +498,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         chargesContainer.appendChild(newChargeDiv);
         chargeCount++;
+        
+        // Actualizar y redibujar
+        grid.updateCargasFromForm();
+        grid.draw();
     });
 
-    // Delegación de eventos para minimizar y eliminar
+    // Delegación de eventos para el contenedor de cargas
     chargesContainer.addEventListener('click', function(e) {
         const target = e.target;
         
@@ -429,7 +519,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 target.classList.replace('fa-plus', 'fa-minus');
             }
-            return; // Salir para no procesar otros eventos
         }
         
         // Manejar eliminar
@@ -437,7 +526,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (confirm('¿Estás seguro de eliminar esta carga?')) {
                 target.closest('.carga-div').remove();
                 updateChargeNumbers();
+                grid.updateCargasFromForm();
+                grid.draw();
             }
+        }
+    });
+
+    // Actualizar cuando se modifique cualquier input
+    document.addEventListener('input', function(e) {
+        if (e.target.matches('.carga-div input')) {
+            grid.updateCargasFromForm();
+            grid.draw();
         }
     });
 
@@ -447,7 +546,6 @@ document.addEventListener('DOMContentLoaded', function() {
         chargeDivs.forEach((div, index) => {
             const chargeNumber = index + 1;
             div.querySelector('.carga-header span').textContent = `Carga ${chargeNumber} (C)`;
-            // Actualizar IDs si es necesario
         });
     }
 });
