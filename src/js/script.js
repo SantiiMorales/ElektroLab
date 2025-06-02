@@ -382,43 +382,75 @@ window.addEventListener('load', function() {
         // Aquí iría el resto de tu código para el simulador
 })
 
+
 document.addEventListener('DOMContentLoaded', function() {
-    const addChargeBtn = document.getElementById('addChargeBtn');// Botón para agregar cargas
+    const addChargeBtn = document.getElementById('addChargeBtn');
     const chargesContainer = document.getElementById('chargesContainer');
     let chargeCount = 1;
 
+    // Función para añadir nueva carga
     addChargeBtn.addEventListener('click', function() {
         const newChargeDiv = document.createElement('div');
-        newChargeDiv.className = 'carga-div';//html para cada carga
+        newChargeDiv.className = 'carga-div';
         newChargeDiv.innerHTML = `
-            <label for="charge${chargeCount}">Carga ${chargeCount} (C):</label>
-            <input type="number" id="charge${chargeCount}" value="1e-6" step="1e-6">
-            <label for="x-cordinate${chargeCount}">X:</label>
-            <input type="number" id="x-cordinate${chargeCount}" value="0" step="1">
-            <label for="y-cordinate${chargeCount}">Y:</label>
-            <input type="number" id="y-cordinate${chargeCount}" value="0" step="1">
-            <button class="remove-charge-btn" data-charge="${chargeCount}">Eliminar</button>
+            <div class="carga-header">
+                <span>Carga ${chargeCount} (C)</span>
+                <div>
+                    <i class="fas fa-minus minimizar" data-charge="${chargeCount}"></i>
+                </div>
+            </div>
+            <div class="carga-content">
+                <label for="charge${chargeCount}">Valor (C):</label>
+                <input type="number" id="charge${chargeCount}" value="1e-6" step="1e-6">
+                <label for="x-cordinate${chargeCount}">X:</label>
+                <input type="number" id="x-cordinate${chargeCount}" value="0" step="1">
+                <label for="y-cordinate${chargeCount}">Y:</label>
+                <input type="number" id="y-cordinate${chargeCount}" value="0" step="1">
+                <button class="remove-charge-btn" data-charge="${chargeCount}">Eliminar</button>
+            </div>
         `;
         
         chargesContainer.appendChild(newChargeDiv);
         chargeCount++;
     });
 
-    // Delegación de eventos para los botones de eliminar
+    // Delegación de eventos para minimizar y eliminar
     chargesContainer.addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-charge-btn')) {
-            e.target.parentElement.remove();
-            // Opcional: reordenar los números de las cargas restantes
-            updateChargeNumbers();
+        const target = e.target;
+        
+        // Manejar minimizar
+        if (target.classList.contains('minimizar')) {
+            const cargaDiv = target.closest('.carga-div');
+            cargaDiv.classList.toggle('carga-minimizada');
+            
+            // Cambiar icono
+            if (cargaDiv.classList.contains('carga-minimizada')) {
+                target.classList.replace('fa-minus', 'fa-plus');
+            } else {
+                target.classList.replace('fa-plus', 'fa-minus');
+            }
+            return; // Salir para no procesar otros eventos
+        }
+        
+        // Manejar eliminar
+        if (target.classList.contains('remove-charge-btn')) {
+            if (confirm('¿Estás seguro de eliminar esta carga?')) {
+                target.closest('.carga-div').remove();
+                updateChargeNumbers();
+            }
         }
     });
 
+    // Función para actualizar números de carga
     function updateChargeNumbers() {
         const chargeDivs = document.querySelectorAll('.carga-div');
         chargeDivs.forEach((div, index) => {
             const chargeNumber = index + 1;
-            div.querySelector('label').textContent = `Carga ${chargeNumber} (C):`;
+            div.querySelector('.carga-header span').textContent = `Carga ${chargeNumber} (C)`;
             // Actualizar IDs si es necesario
         });
     }
 });
+
+
+
