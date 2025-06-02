@@ -27,13 +27,54 @@ header {
 .panel-container {
     flex: 0  30%;
     padding: 20px;
-    background-color: aqua;
+    background-color: rgb(102, 107, 116);
     overflow-y: auto;
 }
 
 #physicsCanvas {
     width: 100%;
     height: 100%;
-    background-color: #a7a7a7;
+    
     display: block;
+}
+
+
+.charge-btn {
+    background-color: #0e0c80;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 20px;
+    transition: background-color 0.3s;
+}
+
+.charge-btn:hover {
+    background-color: #1916c5;
+}
+
+.carga-div {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.carga-div label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.carga-div input[type="number"],
+.carga-div input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
 }

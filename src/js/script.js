@@ -96,7 +96,7 @@ function Matrix(entries) {
         }
       }
 
-      class CoordinateSystem {
+class CoordinateSystem {
         constructor(canvas) {
           this.canvas = canvas
           this.context = this.canvas.getContext('2d')
@@ -358,15 +358,15 @@ function Matrix(entries) {
 
           this.draw()
         }
-      }
+}
 
-      document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
       const canvas = document.getElementById("physicsCanvas");
       const grid = new CoordinateSystem(canvas);
       
-      });
+});
 
-      window.addEventListener('load', function() {
+window.addEventListener('load', function() {
         const canvas = document.getElementById('physicsCanvas');
         const container = canvas.parentElement;
         
@@ -380,4 +380,45 @@ function Matrix(entries) {
         window.addEventListener('resize', resizeCanvas);
         
         // Aquí iría el resto de tu código para el simulador
-    })
+})
+
+document.addEventListener('DOMContentLoaded', function() {
+    const addChargeBtn = document.getElementById('addChargeBtn');// Botón para agregar cargas
+    const chargesContainer = document.getElementById('chargesContainer');
+    let chargeCount = 1;
+
+    addChargeBtn.addEventListener('click', function() {
+        const newChargeDiv = document.createElement('div');
+        newChargeDiv.className = 'carga-div';//html para cada carga
+        newChargeDiv.innerHTML = `
+            <label for="charge${chargeCount}">Carga ${chargeCount} (C):</label>
+            <input type="number" id="charge${chargeCount}" value="1e-6" step="1e-6">
+            <label for="x-cordinate${chargeCount}">X:</label>
+            <input type="number" id="x-cordinate${chargeCount}" value="0" step="1">
+            <label for="y-cordinate${chargeCount}">Y:</label>
+            <input type="number" id="y-cordinate${chargeCount}" value="0" step="1">
+            <button class="remove-charge-btn" data-charge="${chargeCount}">Eliminar</button>
+        `;
+        
+        chargesContainer.appendChild(newChargeDiv);
+        chargeCount++;
+    });
+
+    // Delegación de eventos para los botones de eliminar
+    chargesContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-charge-btn')) {
+            e.target.parentElement.remove();
+            // Opcional: reordenar los números de las cargas restantes
+            updateChargeNumbers();
+        }
+    });
+
+    function updateChargeNumbers() {
+        const chargeDivs = document.querySelectorAll('.carga-div');
+        chargeDivs.forEach((div, index) => {
+            const chargeNumber = index + 1;
+            div.querySelector('label').textContent = `Carga ${chargeNumber} (C):`;
+            // Actualizar IDs si es necesario
+        });
+    }
+});
