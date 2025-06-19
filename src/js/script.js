@@ -132,6 +132,7 @@ class Carga {
   }
 }
 
+//Función para calcular la magnitud de la fuerza
 function calculateForce(carga1, carga2, dist){
   const k = 9e9;
 
@@ -140,6 +141,12 @@ function calculateForce(carga1, carga2, dist){
   return forceMagnitude;
 }
 
+//Función para calcular el campo eléctrico de manera vectorial
+function vectorialCamp(c, angle){
+  return [c * Math.cos(angle), c * Math.sin(angle)];
+}
+
+//Función para calcular la fuerza de manera vectorial
 function vectorialForce(force, angle){
   return [force * Math.cos(angle), force * Math.sin(angle)];
 }
@@ -197,8 +204,9 @@ class CoordinateSystem {
             mouseState.pressed = true;
         });
 
+        //Evento para detectar cuando se hace clic en el canvas, y para detectar cuando se selecciona una carga
         this.canvas.addEventListener('click', (e) => {
-          let selectedCarga, force = 0, campo = 0, x = 0, y = 0, i = 0, j = 0;
+          let selectedCarga, force = 0, campo = 0, x = 0, y = 0, i = 0, j = 0, cI = 0, cJ = 0;
           if(!mouseState.pressed){
             const rect = this.canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
@@ -207,6 +215,7 @@ class CoordinateSystem {
             this.cargasObjects.forEach(carga => {
               if(carga.x == Math.round(worldX) && carga.y == Math.round(worldY)){
                 selectedCarga = carga;
+                carga.focused = true;
               } else {
                 carga.focused = false;
               }
@@ -216,27 +225,50 @@ class CoordinateSystem {
                 if (carga !== selectedCarga) {
                   const dist = carga.calculateDistance(selectedCarga.x, selectedCarga.y);
                   console.log(`Distancia de ${selectedCarga.id} a ${carga.id}: ${dist.toFixed(2)}`);
+
+                  //Cálculo de la fuerza y el campo eléctrico
                   let forceLocal = calculateForce(selectedCarga, carga, dist);
+                  let campLocal = forceLocal / selectedCarga.valor;
                   console.log(`Fuerza entre las cargas ${selectedCarga.id} y ${carga.id}: ${forceLocal} N`);
                   x = carga.x - selectedCarga.x;
                   y = carga.y - selectedCarga.y;
                   
                   force += forceLocal;
-                  
-                  /* console.log("Valores: ");
+                  console.log("Valores: ");
                   console.log(x, y);
-                  console.log("Angulo:", Math.atan2(Math.abs(y), Math.abs(x))); */
 
-                  let [iLocal, jLocal] = vectorialForce(forceLocal, Math.atan2(Math.abs(y), Math.abs(x)));
+                  let [iLocal, jLocal] = vectorialForce(forceLocal, Math.atan2(y, x));
+                  let [c1, c2] = vectorialCamp(campLocal, Math.atan2(y, x));
+
+                  iLocal *= -1;
+                  jLocal *= -1;
+                  c1 *= -1;
+                  c2 *= -1;
 
                   i += iLocal;
                   j += jLocal;
 
+                  cI += c1;
+                  cJ += c2;
+
                   console.log(`Componente de la fuerza en i: ${iLocal.toFixed(8)} N`);
                   console.log(`Componente de la fuerza en j: ${jLocal.toFixed(8)} N`);
+                  console.log(`Componente del campo en i: ${c1.toFixed(8)} N/C`);
+                  console.log(`Componente del campo en j: ${c2.toFixed(8)} N/C`);
                 }
               });
+              let infoDiv = document.getElementById('info');
+
+              infoDiv.innerHTML = `
+                <span class="info-span">Carga evaluada: Carga ${selectedCarga.id}</span>
+                <span class="info-span">Fuerza total sobre la carga evaluada: ${i.toFixed(5)}i ${j.toFixed(5)}j N</span>
+                <span class="info-span">Campo total sobre la carga evaluada: ${cI.toFixed(5)}i ${cJ.toFixed(5)}j N/C</span>
+              `;
+
+              infoDiv.style.display = 'flex';
+
               console.log(`Fuerza total sobre la carga ${i.toFixed(8)}i ${j.toFixed(8)}j N`);
+              console.log(`Campo total sobre la carga ${cI.toFixed(6)}i ${cJ.toFixed(6)}j N/C`);
             }
           }
         });
