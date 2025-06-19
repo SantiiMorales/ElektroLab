@@ -102,6 +102,7 @@ function Matrix(entries) {
         }
       }
 
+//Clase para crear una carga
 class Carga {
   constructor(x, y, valor, id){
     this._x = x;
@@ -349,7 +350,6 @@ class CoordinateSystem {
 
             this.cargasObjects.push(new Carga(parseFloat(xInput.value), parseFloat(yInput.value), parseFloat(valorInput.value), index + 1));
             console.log(this.cargasObjects);
-            console.log("x", this.cargasObjects[0].x);
         });
     }
 
@@ -564,8 +564,6 @@ class CoordinateSystem {
         }
 }
 
-
-
 window.addEventListener('load', function() {
         const canvas = document.getElementById('physicsCanvas');
         const container = canvas.parentElement;
@@ -676,6 +674,3 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-
-
-

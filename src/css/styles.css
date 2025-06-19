@@ -141,6 +141,7 @@ header {
 
 .info-span {
     padding: 3px 15px;
+    font-family: Roboto, Arial, sans-serif;
     font-size: 15px;
     font-weight: bold;
 }
