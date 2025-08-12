@@ -3,6 +3,33 @@ const ctx = canvas.getContext('2d');
 let cargas = [];
 let cargaPositivaImg, cargaNegativaImg;
 
+// Añade esta función en tu código (puede ir al principio del archivo)
+function formatWithPrefix(value) {
+    const prefixes = [
+        { threshold: 1e9, prefix: 'G' },  // Giga
+        { threshold: 1e6, prefix: 'M' },   // Mega
+        { threshold: 1e3, prefix: 'k' },   // kilo
+        { threshold: 1, prefix: '' },      // unidad
+        { threshold: 1e-3, prefix: 'm' }, // mili
+        { threshold: 1e-6, prefix: 'μ' }, // micro
+        { threshold: 1e-9, prefix: 'n' }   // nano
+    ];
+    
+    const absValue = Math.abs(value);
+    if (absValue === 0) return '0';
+    
+    for (const { threshold, prefix } of prefixes) {
+        if (absValue >= threshold) {
+            const scaledValue = value / threshold;
+            // Mostrar 2 decimales si el valor escalado es < 10
+            const decimalPlaces = Math.abs(scaledValue) < 10 ? 2 : 1;
+            return scaledValue.toFixed(decimalPlaces) + prefix;
+        }
+    }
+    
+    // Para valores muy pequeños, usar notación científica
+    return value.toExponential(2);
+}
 
 function Matrix(entries) {
         this.entries = entries
@@ -156,113 +183,136 @@ function vectorialForce(force, x, y){
   return [i, j];
 }
 
-function selectedCharge(cargaObjects, selectedCarga, _this){
+function selectedCharge(cargaObjects, selectedCarga, _this) {
     let force = 0, x = 0, y = 0, i = 0, j = 0, cI = 0, cJ = 0;
     cargaObjects.forEach(carga => {
-      if (carga !== selectedCarga) {
-        const dist = carga.calculateDistance(selectedCarga.x, selectedCarga.y);
-        console.log(`Distancia de ${selectedCarga.id} a ${carga.id}: ${dist.toFixed(2)}`);
+        if (carga !== selectedCarga) {
+            const dist = carga.calculateDistance(selectedCarga.x, selectedCarga.y);
+            let forceLocal = calculateForce(selectedCarga, carga, dist);
+            let campLocal = forceLocal / selectedCarga.valor;
+            x = carga.x - selectedCarga.x;
+            y = carga.y - selectedCarga.y;
+            
+            let [iLocal, jLocal] = vectorialForce(forceLocal, x, y);
+            let [c1, c2] = vectorialCamp(campLocal, x, y);
 
-        //Cálculo de la fuerza y el campo eléctrico
-        let forceLocal = calculateForce(selectedCarga, carga, dist);
-        let campLocal = forceLocal / selectedCarga.valor;
-        console.log(`Fuerza entre las cargas ${selectedCarga.id} y ${carga.id}: ${forceLocal} N`);
-        x = carga.x - selectedCarga.x;
-        y = carga.y - selectedCarga.y;
-        
-        force += forceLocal;
-        console.log("Valores: ");
-        console.log(x, y);
+            iLocal *= -1;
+            jLocal *= -1;
+            c1 *= -1;
+            c2 *= -1;
 
-        let [iLocal, jLocal] = vectorialForce(forceLocal, x, y);
-        let [c1, c2] = vectorialCamp(campLocal, x, y);
-
-        iLocal *= -1;
-        jLocal *= -1;
-        c1 *= -1;
-        console.log('C2:', c2);
-        c2 *= -1;
-
-        i += iLocal;
-        j += jLocal;
-
-        cI += c1;
-        cJ += c2;
-
-        console.log(`Componente de la fuerza en i: ${iLocal.toFixed(8)} N`);
-        console.log(`Componente de la fuerza en j: ${jLocal.toFixed(8)} N`);
-        console.log(`Componente del campo en i: ${c1.toFixed(8)} N/C`);
-        console.log(`Componente del campo en j: ${c2.toFixed(8)} N/C`);
-      }
+            i += iLocal;
+            j += jLocal;
+            cI += c1;
+            cJ += c2;
+        }
     });
 
-
+    // Actualizar información en el div
     let infoDiv = document.getElementById('info');
-
     const epsilon = 1e-8;
-
     infoDiv.innerHTML = `
-      <span class="info-span">Carga evaluada: Carga ${selectedCarga.id}</span>
-      <span class="info-span">
-        F = 
-        ${Math.abs(i) < epsilon ? 0 : i.toFixed(5)}i
-        ${Math.abs(j) < epsilon ? 0 : j.toFixed(5)}j N
-      </span>
-      <span class="info-span">
-        E =  
-        ${Math.abs(cI) < epsilon ? 0 : cI.toFixed(5)}i 
-        ${Math.abs(cJ) < epsilon ? 0 : cJ.toFixed(5)}j N/C
-      </span>
+        <span class="info-span">Carga evaluada: Carga ${selectedCarga.id}</span>
+        <span class="info-span">
+            F = 
+            ${formatWithPrefix(i)}i
+            ${formatWithPrefix(j)}j N
+        </span>
+        <span class="info-span">
+            E =  
+            ${formatWithPrefix(cI)}i 
+            ${formatWithPrefix(cJ)}j N/C
+        </span>
     `;
-
-    console.log(toScientificNotation(cI));
-    console.log(toScientificNotation(cJ));
-
-    const startCoords = _this.canvasCoords(selectedCarga.x, selectedCarga.y);
-    const endCoords = _this.canvasCoords(
-        selectedCarga.x + toScientificNotation(cI), // Multiplicar por factor para hacer visible
-        selectedCarga.y + toScientificNotation(cJ)
-    );
-
-    let arrowLength = 10;
-
-    [startX, startY] = startCoords;
-    [endX, endY] = endCoords;
-
-    const arrowAngle = Math.PI / 6; // Ángulo de la punta (30 grados)
-
-    const angle = Math.atan2(endY - startY, endX - startX);
-    const x1 = endX - arrowLength * Math.cos(angle + arrowAngle);
-    const y1 = endY - arrowLength * Math.sin(angle + arrowAngle);
-    const x2 = endX - arrowLength * Math.cos(angle - arrowAngle);
-    const y2 = endY - arrowLength * Math.sin(angle - arrowAngle);
-    _this.context.save();
-    _this.context.beginPath();
-    _this.context.moveTo(startCoords[0], startCoords[1]);
-    _this.context.lineTo(endCoords[0], endCoords[1]);
-    _this.context.strokeStyle = 'red';
-    _this.context.lineWidth = 4 / _this.zoomLevel;
-    _this.context.closePath();
-    _this.context.stroke();
-    _this.context.beginPath();
-    _this.context.beginPath();
-    _this.context.moveTo(endX, endY);
-    _this.context.strokeStyle = 'red';
-    _this.context.lineTo(x1, y1);
-    _this.context.lineTo(x2, y2);
-    _this.context.closePath();
-    _this.context.fillStyle = 'red';
-    _this.context.fill();
-    _this.context.restore();
-
-
-    
 
     infoDiv.style.display = 'flex';
 
-    /* console.log(`F = ${i.toFixed(8)}i ${j.toFixed(8)}j N`);
-    console.log(`E = ${cI.toFixed(6)}i ${cJ.toFixed(6)}j N/C`); */
-  }
+    // Guardar datos de la flecha para redibujado persistente
+    _this.arrowData = {
+        start: { x: selectedCarga.x, y: selectedCarga.y },
+        end: { 
+            x: selectedCarga.x + toScientificNotation(cI), 
+            y: selectedCarga.y + toScientificNotation(cJ) 
+        }
+    };
+    
+    _this.draw(); // Redibujar todo, incluyendo la flecha
+}
+
+function createForceArrow(coordinateSystem, carga, forceX, forceY) {
+    // Eliminar flecha anterior si existe
+    const existingArrow = document.getElementById('force-arrow');
+    if (existingArrow) {
+        existingArrow.remove();
+    }
+    
+    // Obtener coordenadas de inicio (posición de la carga)
+    const startCoords = coordinateSystem.canvasCoords(carga.x, carga.y);
+    
+    // Calcular coordenadas de fin (posición + fuerza)
+    const scaleFactor = 1e8; // Factor de escala para hacer visible la fuerza
+    const endCoords = coordinateSystem.canvasCoords(
+        carga.x + forceX * scaleFactor,
+        carga.y + forceY * scaleFactor
+    );
+    
+    // Crear elemento SVG
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute('id', 'force-arrow');
+    svg.style.position = 'absolute';
+    svg.style.top = '0';
+    svg.style.left = '0';
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+    svg.style.pointerEvents = 'none'; // Para que no interfiera con los clicks
+    
+    // Crear línea de la flecha
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute('x1', startCoords[0]);
+    line.setAttribute('y1', startCoords[1]);
+    line.setAttribute('x2', endCoords[0]);
+    line.setAttribute('y2', endCoords[1]);
+    line.setAttribute('stroke', 'red');
+    line.setAttribute('stroke-width', '2');
+    line.setAttribute('marker-end', 'url(#arrowhead)');
+    
+    // Crear marcador para la punta de la flecha
+    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker.setAttribute('id', 'arrowhead');
+    marker.setAttribute('markerWidth', '10');
+    marker.setAttribute('markerHeight', '7');
+    marker.setAttribute('refX', '9');
+    marker.setAttribute('refY', '3.5');
+    marker.setAttribute('orient', 'auto');
+    
+    const arrowHead = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    arrowHead.setAttribute('points', '0 0, 10 3.5, 0 7');
+    arrowHead.setAttribute('fill', 'red');
+    
+    marker.appendChild(arrowHead);
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+    svg.appendChild(line);
+    
+    // Insertar el SVG en el contenedor del canvas
+    const container = coordinateSystem.canvas.parentElement;
+    container.appendChild(svg);
+    
+    // Actualizar la flecha cuando se haga zoom o pan
+    coordinateSystem.canvas.addEventListener('redraw', function() {
+        const newStart = coordinateSystem.canvasCoords(carga.x, carga.y);
+        const newEnd = coordinateSystem.canvasCoords(
+            carga.x + forceX * scaleFactor,
+            carga.y + forceY * scaleFactor
+        );
+        
+        line.setAttribute('x1', newStart[0]);
+        line.setAttribute('y1', newStart[1]);
+        line.setAttribute('x2', newEnd[0]);
+        line.setAttribute('y2', newEnd[1]);
+    });
+}
 
 function toScientificNotation(num) {
     if (num === 0) return 0;
@@ -277,6 +327,15 @@ class CoordinateSystem {
     constructor(canvas) {
         this.canvas = canvas;
         this.context = this.canvas.getContext('2d');
+        this.svgContainer = document.createElement('div');
+        this.svgContainer.style.position = 'absolute';
+        this.svgContainer.style.top = '0';
+        this.svgContainer.style.left = '0';
+        this.svgContainer.style.width = this.canvas.width + 'px';
+        this.svgContainer.style.height = this.canvas.height + 'px';
+        this.svgContainer.style.pointerEvents = 'none';
+        this.svgContainer.style.overflow = 'visible';
+        this.canvas.parentElement.appendChild(this.svgContainer);
         this.settings = {
             gridLines: {
                 major: {
@@ -311,7 +370,9 @@ class CoordinateSystem {
 
         // Variables para las cargas
         this.cargas = [];
+        this.arrowData = null; // Guardar datos de flecha
         this.cargasObjects = [];
+        this.arrows = [];
         this.cargaPositivaImg = new Image();
         this.cargaNegativaImg = new Image();
         this.loadChargeImages();
@@ -326,6 +387,8 @@ class CoordinateSystem {
         this.canvas.addEventListener('mousedown', e => {
             mouseState.pressed = true;
         });
+
+        
 
         //Evento para detectar cuando se hace clic en el canvas, y para detectar cuando se selecciona una carga
         this.canvas.addEventListener('click', (e) => {
@@ -344,92 +407,6 @@ class CoordinateSystem {
                 carga.focused = false;
               }
             });
-            /* if (selectedCarga) {
-              this.cargasObjects.forEach(carga => {
-                if (carga !== selectedCarga) {
-                  const dist = carga.calculateDistance(selectedCarga.x, selectedCarga.y);
-                  console.log(`Distancia de ${selectedCarga.id} a ${carga.id}: ${dist.toFixed(2)}`);
-
-                  //Cálculo de la fuerza y el campo eléctrico
-                  let forceLocal = calculateForce(selectedCarga, carga, dist);
-                  let campLocal = forceLocal / selectedCarga.valor;
-                  console.log(`Fuerza entre las cargas ${selectedCarga.id} y ${carga.id}: ${forceLocal} N`);
-                  x = carga.x - selectedCarga.x;
-                  y = carga.y - selectedCarga.y;
-                  
-                  force += forceLocal;
-                  console.log("Valores: ");
-                  console.log(x, y);
-
-                  let [iLocal, jLocal] = vectorialForce(forceLocal, x, y);
-                  let [c1, c2] = vectorialCamp(campLocal, x, y);
-
-                  iLocal *= -1;
-                  jLocal *= -1;
-                  c1 *= -1;
-                  console.log('C2:', c2);
-                  c2 *= -1;
-
-                  i += iLocal;
-                  j += jLocal;
-
-                  cI += c1;
-                  cJ += c2;
-
-                  console.log(`Componente de la fuerza en i: ${iLocal.toFixed(8)} N`);
-                  console.log(`Componente de la fuerza en j: ${jLocal.toFixed(8)} N`);
-                  console.log(`Componente del campo en i: ${c1.toFixed(8)} N/C`);
-                  console.log(`Componente del campo en j: ${c2.toFixed(8)} N/C`);
-                }
-              });
-
-
-              let infoDiv = document.getElementById('info');
-
-              const epsilon = 1e-8;
-
-              infoDiv.innerHTML = `
-                <span class="info-span">Carga evaluada: Carga ${selectedCarga.id}</span>
-                <span class="info-span">
-                  F = 
-                  ${Math.abs(i) < epsilon ? 0 : i.toFixed(5)}i
-                  ${Math.abs(j) < epsilon ? 0 : j.toFixed(5)}j N
-                </span>
-                <span class="info-span">
-                  E =  
-                  ${Math.abs(cI) < epsilon ? 0 : cI.toFixed(5)}i 
-                  ${Math.abs(cJ) < epsilon ? 0 : cJ.toFixed(5)}j N/C
-                </span>
-              `;
-
-              console.log(toScientificNotation(cI));
-              console.log(toScientificNotation(cJ));
-
-              const startCoords = this.canvasCoords(selectedCarga.x, selectedCarga.y);
-              const endCoords = this.canvasCoords(
-                  selectedCarga.x + toScientificNotation(cI), // Multiplicar por factor para hacer visible
-                  selectedCarga.y + toScientificNotation(cJ)
-              );
-
-
-              
-              
-              
-              this.context.beginPath();
-              this.context.moveTo(startCoords[0], startCoords[1]);
-              this.context.lineTo(endCoords[0], endCoords[1]);
-              this.context.strokeStyle = 'red';
-              this.context.lineWidth = 2 / this.zoomLevel;
-              this.context.transform(1, this.angle, 0, 1, 0, 0);
-              this.context.stroke();
-              this.context.save();
-              
-
-              infoDiv.style.display = 'flex';
-
-              /* console.log(`F = ${i.toFixed(8)}i ${j.toFixed(8)}j N`);
-              console.log(`E = ${cI.toFixed(6)}i ${cJ.toFixed(6)}j N/C`);
-            } */
 
             if(selectedCarga){
                 selectedCharge(this.cargasObjects, selectedCarga, this);
@@ -476,6 +453,91 @@ class CoordinateSystem {
         this.draw();
     }
 
+    drawArrowSVG(startX, startY, endX, endY) {
+      this.clearArrows();  
+      /* 
+        
+        // Asegurarse de que las coordenadas son números válidos
+        if (isNaN(startX)) startX = 0;
+        if (isNaN(startY)) startY = 0;
+        if (isNaN(endX)) endX = 0;
+        if (isNaN(endY)) endY = 0;
+        
+        // Calcular la longitud del vector
+        const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+        if (length < 5) return; // No dibujar flechas demasiado cortas
+        
+        const angle = Math.atan2(endY - startY, endX - startX);
+        const arrowLength = Math.min(15, length/3);
+        
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('width', this.canvas.width);
+        svg.setAttribute('height', this.canvas.height);
+        svg.style.position = 'absolute';
+        svg.style.top = '0';
+        svg.style.left = '0';
+        svg.style.pointerEvents = 'none';
+        
+        // Línea principal
+        const line = document.createElementNS(svgNS, 'line');
+        line.setAttribute('x1', startX);
+        line.setAttribute('y1', startY);
+        line.setAttribute('x2', endX);
+        line.setAttribute('y2', endY);
+        line.setAttribute('stroke', 'green');
+        line.setAttribute('stroke-width', '4');
+        line.setAttribute('stroke-linecap', 'round');
+        
+        // Cabeza de flecha
+        const arrowHead = document.createElementNS(svgNS, 'path');
+        const headLength = arrowLength;
+        const headAngle = Math.PI/6;
+        
+        const x1 = endX - headLength * Math.cos(angle - headAngle);
+        const y1 = endY - headLength * Math.sin(angle - headAngle);
+        const x2 = endX - headLength * Math.cos(angle + headAngle);
+        const y2 = endY - headLength * Math.sin(angle + headAngle);
+        
+        arrowHead.setAttribute('d', `M ${endX} ${endY} L ${x1} ${y1} L ${x2} ${y2} Z`);
+        arrowHead.setAttribute('fill', 'green');
+        
+        svg.appendChild(line);
+        svg.appendChild(arrowHead);
+        this.svgContainer.appendChild(svg); */
+        let arrowLength = 10;
+        const arrowAngle = Math.PI / 6; // Ángulo de la punta (30 grados)
+
+        const angle = Math.atan2(endY - startY, endX - startX);
+        const x1 = endX - arrowLength * Math.cos(angle + arrowAngle);
+        const y1 = endY - arrowLength * Math.sin(angle + arrowAngle);
+        const x2 = endX - arrowLength * Math.cos(angle - arrowAngle);
+        const y2 = endY - arrowLength * Math.sin(angle - arrowAngle);
+        this.context.save();
+        this.context.beginPath();
+        this.context.moveTo(startX, startY);
+        this.context.lineTo(endX, endY);
+        this.context.strokeStyle = 'red';
+        this.context.lineWidth = 4 / this.zoomLevel;
+        this.context.closePath();
+        this.context.stroke();
+        this.context.beginPath();
+        this.context.beginPath();
+        this.context.moveTo(endX, endY);
+        this.context.strokeStyle = 'red';
+        this.context.lineTo(x1, y1);
+        this.context.lineTo(x2, y2);
+        this.context.closePath();
+        this.context.fillStyle = 'red';
+        this.context.fill();
+        this.context.restore();
+    }
+
+    clearArrows() {
+      this.context.save();
+      console.log("Limpiando flechas");
+    }
+
     // Cargar imágenes de las cargas
     loadChargeImages() {
         // SVG para carga positiva (+)
@@ -496,7 +558,9 @@ class CoordinateSystem {
     // Actualizar las cargas desde el formulario
     updateCargasFromForm() {
         this.cargas = [];
+        this.arrowData = null; // Guardar datos de flecha
         this.cargasObjects = [];
+        this.arrows = [];
 
         
         document.querySelectorAll('.carga-div').forEach((div, index) => {
@@ -655,17 +719,53 @@ class CoordinateSystem {
           }
         }
 
-        draw() {
-          this.context.fillStyle = this.settings.backgroundColor;
-          this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-          this.context.strokeStyle = this.settings.border.color;
-          this.context.lineWidth = this.settings.border.width;
-          this.context.strokeRect(0, 0, this.canvas.width, this.canvas.height);
-          this.drawGridlines();
-          this.drawAxes();
-          this.drawTickLabels();
-          this.drawCargas(); // Añadido para dibujar las cargas
-        }
+        
+    drawArrow() {
+        if (!this.arrowData) return;
+        const { start, end } = this.arrowData;
+
+        const startCoords = this.canvasCoords(start.x, start.y);
+        const endCoords = this.canvasCoords(end.x, end.y);
+
+        const arrowLength = 10;
+        const arrowAngle = Math.PI / 6;
+        const angle = Math.atan2(endCoords[1] - startCoords[1], endCoords[0] - startCoords[0]);
+
+        this.context.save();
+        this.context.beginPath();
+        this.context.moveTo(startCoords[0], startCoords[1]);
+        this.context.lineTo(endCoords[0], endCoords[1]);
+        this.context.strokeStyle = 'red';
+        this.context.lineWidth = 4 / this.zoomLevel;
+        this.context.stroke();
+
+        const x1 = endCoords[0] - arrowLength * Math.cos(angle + arrowAngle);
+        const y1 = endCoords[1] - arrowLength * Math.sin(angle + arrowAngle);
+        const x2 = endCoords[0] - arrowLength * Math.cos(angle - arrowAngle);
+        const y2 = endCoords[1] - arrowLength * Math.sin(angle - arrowAngle);
+
+        this.context.beginPath();
+        this.context.moveTo(endCoords[0], endCoords[1]);
+        this.context.lineTo(x1, y1);
+        this.context.lineTo(x2, y2);
+        this.context.closePath();
+        this.context.fillStyle = 'red';
+        this.context.fill();
+        this.context.restore();
+    }
+
+    draw() {
+        this.context.fillStyle = this.settings.backgroundColor;
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.strokeStyle = this.settings.border.color;
+        this.context.lineWidth = this.settings.border.width;
+        this.context.strokeRect(0, 0, this.canvas.width, this.canvas.height);
+        this.drawGridlines();
+        this.drawAxes();
+        this.drawTickLabels();
+        this.drawCargas();
+        this.drawArrow(); // Flecha persistente
+    }
 
 
         canvasCoords(x, y) {
