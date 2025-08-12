@@ -1,113 +1,217 @@
+/* Paleta de Colores Sugerida:
+   - Azul Oscuro/Negro (Fondo, elementos principales): #1a1a2e
+   - Azul Eléctrico (Acentos, interactividad): #0f3460 o #00f2fe
+   - Gris Cálido (Texto, paneles secundarios): #e0e0e0, #adadad
+   - Rojo/Naranja (Alerta, eliminar - si es necesario): #ff4d4d (el que ya tienes)
+*/
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', sans-serif; /* Fuente moderna y legible para el cuerpo */
     margin: 0;
     padding: 0;
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: #000000;
+    /* Degradado de fondo con tonos oscuros y tecnológicos */
+    background: linear-gradient(135deg, #12121e 0%, #1a1a2e 50%, #0f3460 100%);
+    color: #e0e0e0; /* Color de texto claro para buen contraste */
+    overflow: hidden; /* Evita barras de desplazamiento innecesarias en el body */
 }
 
 header {
     display: flex;
-    background-color: #333;
+    background-color: #0f3460; /* Un azul más oscuro que el fondo para el header */
     color: white;
-    padding: 0px 20px;
+    padding: 15px 20px; /* Más padding para un diseño más espacioso */
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Sombra sutil para profundidad */
+    z-index: 10; /* Asegura que el header esté por encima de otros elementos */
+}
+
+header h2 {
+    font-family: 'WDXL Lubrifont TC', sans-serif;
+    font-size: 3.8em; /* Aún más grande para destacar */
+    margin: 0;
+    letter-spacing: 3px; /* Más espacio entre letras */
+    text-shadow: 0 0 15px rgba(0, 242, 254, 0.7), 0 0 5px rgba(0, 242, 254, 0.5); /* Efecto de resplandor (glow) azul */
+    color: #00f2fe; /* Azul eléctrico para el texto del título */
+    transition: all 0.4s ease-in-out; /* Transición para todos los cambios */
+}
+
+header h2:hover {
+    color: #ffffff; /* Blanco puro al pasar el ratón */
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 10px rgba(255, 255, 255, 0.7); /* Resplandor blanco más intenso */
+    transform: scale(1.02); /* Ligeramente más grande al pasar el ratón */
 }
 
 .main-container {
     display: flex;
     flex: 1;
-    height: calc(100vh - 50px); /* Resta la altura del header */
+    height: calc(100vh - 80px); /* Ajusta la altura restando la altura del header + padding */
+    gap: 20px; /* Espacio entre el canvas y el panel */
+    padding: 20px; /* Padding para el main-container */
+    box-sizing: border-box; /* Incluye padding en el cálculo del ancho/alto */
 }
 
 .canvas-container {
     flex: 0 0 70%;
+    background-color: rgba(10, 10, 20, 0.7); /* Fondo semi-transparente oscuro para el canvas */
+    border-radius: 10px; /* Bordes redondeados */
+    overflow: hidden; /* Asegura que el canvas no se salga de los bordes redondeados */
+    box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.2), 0 0 20px rgba(0, 242, 254, 0.3); /* Sombra interior y exterior con resplandor azul */
+    border: 1px solid rgba(0, 242, 254, 0.5); /* Borde sutil azul */
 }
 
 .panel-container {
-    flex: 0  30%;
+    flex: 0 0 30%;
     padding: 20px;
-    background-color: rgb(102, 107, 116);
+    background-color: rgba(30, 30, 50, 0.8); /* Fondo oscuro semi-transparente */
     overflow-y: auto;
+    border-radius: 10px; /* Bordes redondeados */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Sombra para el panel */
+    border: 1px solid rgba(0, 242, 254, 0.3); /* Borde sutil azul */
 }
 
 #physicsCanvas {
     width: 100%;
     height: 100%;
-    
     display: block;
+    background-color: #1a1a2e; /* Color de fondo del canvas (si se necesita, aunque el contenedor ya tiene) */
+    border-radius: 10px; /* Asegura que el canvas también tenga bordes redondeados */
+}
+
+/* Estilos para los títulos dentro del panel */
+.panel-container p {
+    text-align: center;
+    font-family: 'WDXL Lubrifont TC', sans-serif;
+    font-size: 1.8em;
+    color: #00f2fe; /* Color azul eléctrico */
+    margin-bottom: 25px;
+    text-shadow: 0 0 8px rgba(0, 242, 254, 0.5); /* Resplandor sutil */
 }
 
 
 .charge-btn {
-    background-color: #0e0c80;
+    background-color: #0f3460; /* Un azul más profundo para el botón */
     color: white;
-    padding: 10px 15px;
+    padding: 12px 20px; /* Más padding para un botón más grande */
     border: none;
-    border-radius: 4px;
+    border-radius: 5px; /* Bordes ligeramente más redondeados */
     cursor: pointer;
-    font-size: 16px;
-    margin-bottom: 20px;
-    transition: background-color 0.3s;
+    font-size: 17px;
+    font-weight: bold;
+    margin-bottom: 25px;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    width: 100%; /* Botón de ancho completo */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .charge-btn:hover {
-    background-color: #1916c5;
+    background-color: #00f2fe; /* Azul eléctrico al pasar el ratón */
+    transform: translateY(-2px); /* Pequeño efecto de elevación */
+    box-shadow: 0 4px 10px rgba(0, 242, 254, 0.5); /* Sombra con resplandor */
+}
+
+.charge-btn:active {
+    transform: translateY(0); /* Vuelve a la posición normal al hacer clic */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .carga-div {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    background-color: rgba(40, 40, 60, 0.7); /* Fondo un poco más claro y semi-transparente */
+    border: 1px solid rgba(0, 242, 254, 0.2); /* Borde sutil */
+    border-radius: 8px; /* Bordes redondeados */
     padding: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); /* Sombra más pronunciada */
+    color: #e0e0e0; /* Color de texto para los elementos de la carga */
+    overflow: hidden; /* Para contener los floats */
 }
 
 .carga-div label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     font-weight: bold;
-}
-
-.carga-div button {
-    background-color: #ff4d4d;
-    color: white;
-    padding: 10px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    float: center;
-}   
-
-.carga-div i{
-    float: right;
-    cursor: pointer;
+    color: #adadad; /* Gris más oscuro para las etiquetas */
+    font-size: 0.95em;
 }
 
 .carga-div input[type="number"],
 .carga-div input[type="text"] {
     width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
+    padding: 10px; /* Más padding */
+    margin-bottom: 15px;
+    background-color: rgba(50, 50, 70, 0.9); /* Fondo más oscuro para los inputs */
+    border: 1px solid #0f3460; /* Borde con color de acento */
     border-radius: 4px;
     box-sizing: border-box;
+    color: #ffffff; /* Texto blanco en los inputs */
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.carga-div input[type="number"]:focus,
+.carga-div input[type="text"]:focus {
+    border-color: #00f2fe; /* Borde azul eléctrico al enfocar */
+    box-shadow: 0 0 8px rgba(0, 242, 254, 0.5); /* Resplandor al enfocar */
+    outline: none; /* Elimina el contorno por defecto del navegador */
+}
+
+.carga-div button {
+    background-color: #e74c3c; /* Rojo más vibrante */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    float: none; /* Elimina float para control de diseño */
+    display: block; /* Ocupa su propia línea */
+    margin: 15px auto 0 auto; /* Centra el botón */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.carga-div button:hover {
+    background-color: #c0392b; /* Rojo más oscuro al pasar el ratón */
+    transform: translateY(-1px);
+}
+
+.carga-div i.fa-minus,
+.carga-div i.fa-plus {
+    float: right;
+    cursor: pointer;
+    color: #00f2fe; /* Color azul eléctrico para los iconos de minimizar/maximizar */
+    font-size: 1.2em;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.carga-div i.fa-minus:hover,
+.carga-div i.fa-plus:hover {
+    color: #ffffff; /* Blanco al pasar el ratón */
+    transform: scale(1.1);
 }
 
 .carga-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5px;
-    background-color: #e9e9e9;
-    border-radius: 3px;
+    padding: 8px; /* Más padding */
+    background-color: rgba(30, 30, 50, 0.9); /* Fondo oscuro para el header de la carga */
+    border-radius: 5px;
     cursor: pointer;
+    margin-bottom: 10px; /* Espacio debajo del header */
+    transition: background-color 0.3s ease;
+    border-bottom: 1px solid rgba(0, 242, 254, 0.1); /* Línea sutil */
+}
+
+.carga-header span {
+    font-weight: bold;
+    color: #00f2fe; /* Texto del encabezado azul eléctrico */
 }
 
 .carga-header:hover {
-    background-color: #ddd;
+    background-color: rgba(50, 50, 70, 0.9); /* Ligeramente más claro al pasar el ratón */
 }
 
 .minimizar {
@@ -116,33 +220,93 @@ header {
 }
 
 .carga-content {
-    padding: 15px;
-    transition: all 0.3s ease;
+    padding: 10px 0; /* Ajusta el padding interno */
+    transition: all 0.4s ease-in-out; /* Transición para el colapsado/expandido */
 }
 
 .carga-minimizada .carga-content {
-    display: none;
+    max-height: 0; /* Colapsa el contenido */
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    opacity: 0;
 }
 
 #info {
     margin-top: 10px;
     margin-left: 10px;
     max-width: 50%;
-    display: none;
+    /* display: none; */ /* El JS lo controlará */
     justify-content: center;
     flex-direction: column;
     align-items: center;
-    border-radius: 5px;
+    border-radius: 8px; /* Bordes redondeados */
     max-height: 50%;
-    padding: 20px 15px;
-    background-color: #232323;
+    padding: 20px 25px; /* Más padding */
+    background-color: rgba(10, 10, 20, 0.85); /* Fondo muy oscuro y semi-transparente */
     position: absolute;
+    top: 20px; /* Separado del borde superior */
+    left: 20px; /* Separado del borde izquierdo */
+    color: #00f2fe; /* Color principal de texto para la información */
+    box-shadow: 0 0 25px rgba(0, 242, 254, 0.4), inset 0 0 10px rgba(0, 242, 254, 0.2); /* Sombra con resplandor */
+    border: 1px solid rgba(0, 242, 254, 0.5); /* Borde sutil */
+    font-size: 1.1em;
+    backdrop-filter: blur(5px); /* Efecto de desenfoque para que se vea más moderno */
+    -webkit-backdrop-filter: blur(5px); /* Soporte para Safari */
 }
 
 .info-span {
-    padding: 3px 15px;
-    font-family: Roboto, Arial, sans-serif;
-    font-size: 15px;
+    padding: 5px 0; /* Más espacio vertical entre los spans */
+    font-size: 1em; /* Ajusta el tamaño de fuente si es necesario */
+    font-weight: normal; /* Normaliza el peso de la fuente, el bold solo en etiquetas */
+    text-align: center;
+    width: 100%;
+    color: #adadad; /* Gris para el texto de información general */
+}
+
+.info-span:first-child {
+    font-size: 1.1em;
     font-weight: bold;
-    color: #fefefe;
+    color: #00f2fe; /* Destaca el título "Carga evaluada" */
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+    padding-bottom: 10px;
+}
+
+/* Mejoras para el sistema de coordenadas */
+/* Asegúrate de que los colores de gridlines y axes en JS CoordinateSystem
+   sean coherentes con la nueva paleta (ej. '#adadad' para líneas menores,
+   '#00f2fe' para las principales o ejes) */
+
+/* Si tienes la posibilidad de modificar el JS, considera estos ajustes en CoordinateSystem settings: */
+/*
+this.settings = {
+    gridLines: {
+        major: {
+            spacing: 1,
+            color: 'rgba(0, 242, 254, 0.3)', // Azul claro para líneas principales
+            width: 0.8,
+        },
+        minor: {
+            spacing: 0.25,
+            color: 'rgba(0, 242, 254, 0.1)', // Azul muy sutil para líneas menores
+            width: 0.4,
+        },
+    },
+    backgroundColor: 'transparent', // Ya que el canvas-container tiene fondo, el canvas puede ser transparente
+    axes: {
+        color: '#00f2fe', // Azul eléctrico para los ejes
+        width: 2.5,
+        labelColor: '#adadad', // Gris para las etiquetas de los ejes
+    },
+    border: {
+        color: 'transparent', // El border ya lo manejará el canvas-container
+        width: 0,
+    },
+};
+*/
+
+a {
+    text-decoration: none;
+    color: #fff;
 }

@@ -26,12 +26,6 @@ async function actualizarDatos() {
 
 // Iniciar cuando la página cargue
 window.addEventListener('DOMContentLoaded', () => {
-  // Agrega estos elementos a tu HTML si no los tienes
-  const container = document.createElement('div');
-  container.innerHTML = `
-    <p>Estado: <span id="connection-status">Desconectado</span></p>
-    <p>Valor: <span id="data-display">--</span></p>
-  `;
   document.body.prepend(container);
   
   // Iniciar actualización de datos

@@ -146,3 +146,8 @@ header {
     font-weight: bold;
     color: #fefefe;
 }
+
+a {
+    text-decoration: none;
+    color: #fff;
+}
