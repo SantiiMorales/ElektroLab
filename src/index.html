@@ -1,40 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=WDXL+Lubrifont+TC&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css" crossorigin="anonymous">
-    <title>ElektroLab</title>
-</head>
-<header>
-        <h2 style="font-family: 'WDXL Lubrifont TC';">ElektroLab</h2>
-</header>
-<body>
-    <div class="main-container">
-        <div class="canvas-container"> 
-            <div id="info">
-                <span class="info-span">Texto</span>
-            </div>
-            <canvas id="physicsCanvas"></canvas>
-        </div>
-        <div class="panel-container"> 
-            
-            <p style="text-align: center; font-family: 'WDXL Lubrifont TC';">Configuración de cargas</p>
-                <button id="addChargeBtn" class="charge-btn">Añadir Carga</button>
-                <div id="chargesContainer">
-                    
-                </div>
-        </div>
-    </div>
-
-    <script src="js/script.js"></script>
-</body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,14 +10,106 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css" crossorigin="anonymous">
     <title>ElektroLab</title>
 </head>
-<header>
-    <a href="/"><h2 style="font-family: 'WDXL Lubrifont TC';">ElektroLab</h2></a>
-    <a href="/simulator">simulador</a>
-    <a href="/resistance">resistencia</a>
-</header>
+
 <body>
-    <nav>
+    <header>
+        <nav>
+            <a href="/"><h2>ElektroLab</h2></a>
+            <a href="/simulator"><h3>Resistencia</h3></a>
+            <a href="/resistance"><h3>Simulador</h3></a></a>
+        </nav>
+    </header>
+    <section>
+        <h1>Que es ElektroLab ?</h1>
+        <p>ElektroLab nace como una solución rápida e intuitiva a los desafíos de la física electrónica. 
+            Nuestro objetivo es transformar conceptos que a menudo parecen abstractos en experiencias interactivas y comprensibles. 
+            Para ello, hemos desarrollado dos herramientas principales:
+        </p>
+        <ul>
+            <h3>Simulador de Ley de Coulomb</h3>
+            <p>El simulador de leyes de coulomb es un lienzo en 2D (al estilo de geogebra) donde 
+                se podran colocar cargas puntuales y observar los vectores de fuerza resultantes entre ellas
+                asi como la magnitud de estas fuerzas.
+            </p>
+        </ul>
+        <ul>
+            <h3>Ohmetro</h3>
+            <p>El ohmetro servira como interfaz para calcular el valor de una resistencia conectada 
+                a un arduino de una forma rapida y sencilla, mostrara el valor de esta y como se ven sus bandas.
+            </p>
+        </ul>
         
-    </nav>
+    </section>
+
+    <!--- fundamentos teoricos -->
+    <section>
+        <h2>Fundamentos teoricos</h2>
+        <p>ElektroLab se basa en los conceptos mas funcamentales de la fisica electrica,
+            especificamente: 
+        </p>
+        <ul>
+            <h3>Ley de Coulomb</h3>
+            <p>Establecida por Charles-Augustin de Coulomb, 
+                describe como actuan las fuerzas entre cargas electricas puntuales
+                mediante la formula: 
+                <math xmlns="http://www.w3.org/1998/Math/MathML">
+                    <mi>F</mi><mo>&#xA0;</mo>
+                    <mo>=</mo><mo>&#xA0;</mo>
+                    <mfrac><mrow><mi>k</mi><mo>&#xa0;</mo>
+                    <mo>*</mo><mo>&#xa0;</mo>
+                    <mo>|</mo><mi>q</mi><mn>1</mn>
+                    <mo>&#xa0;</mo><mo>*</mo>
+                    <mo>&#xa0;</mo><mi>q</mi><mn>2</mn>
+                    <mo>|</mo><mo>&#xa0;</mo></mrow>
+                    <mrow><msup><mi>r</mi><mn>2</mn>
+                    </msup></mrow></mfrac>
+                </math>
+            </p>
+        </ul>
+        <ul>
+            <h3>Ley de Ohm</h3>
+            <p>Postulada por Georg Simon Ohm, es una ley fundamental para el estudio de circuitos
+                electricos basicos establece la relación  entre la tensión (voltaje), 
+                la corriente y la resistencia en un circuito eléctrico, su formula principal es: 
+                <math xmlns="http://www.w3.org/1998/Math/MathML">
+                    <mi>V</mi><mo>&#xA0;</mo>
+                    <mo>=</mo><mo>&#xA0;</mo>
+                    <mi>I</mi><mo>&#xA0;</mo>
+                    <mo>*</mo><mo>&#xA0;</mo>
+                    <mi>R</mi>
+                    </math>
+            </p>
+        </ul>
+    </section>
+    <!---Componentes de elektrolab-->
+    <section>
+        <h2>Componentes de ElektroLab</h2>
+        <p>El proyecto se compone de diferentes tecnologias de desarrollo web las cuales permitieron que su desarrollo fuera rapido y simple,
+            esas tecnologias son: 
+        </p>
+        <ul>
+            <h3>HTML:</h3>
+            <p>Es el esqueleto de la pagina, la que le da la estructura y organiza el contenido de la misma.
+            </p>
+        </ul>
+        <ul>
+            <h3>CSS:</h3>
+            <p>Gracias a css se logra tener la estetica presente, se encarga de modificar todos los aspectos visuales de la pagina</p>
+        </ul>
+        <ul>
+            <h3>Javascript:</h3>
+            <p>Javascript es el lenguaje de programacion sobre el cual corre el proyecto, dirige toda la logica de la pagina, desde
+                el plano en el cual se colocan las cargas hasta la conexion que se realiza con el arduino.
+            </p>
+        </ul>
+        <ul>
+            <h3>NodeJs:</h3>
+            <p>NodeJs es un complemento de javascript, lo ayuda a mejorar la interaccion entre la pagina y el arduino permitiendo que 
+                la conexion sea mucho mas sencilla de manejar.
+            </p>
+        </ul>
+    </section>
+
+
 </body>
 </html>
