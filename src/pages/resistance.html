@@ -10,18 +10,21 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css" crossorigin="anonymous">
   <title>ElektroLab | Resistencia</title>
 </head>
-<header>
-    <a href="/"><h2 style="font-family: 'WDXL Lubrifont TC';">ElektroLab</h2></a>
-    <a href="/simulator">simulador</a>
-    <a href="/resistance">resistencia</a>
-</header>
 <body>
-  
+  <header>
+      <nav>
+          <a href="/"><h2>ElektroLab</h2></a>
+          <a href="/simulator"><h3>Simulador</h3></a>
+          <a href="/resistance"><h3>Resistencia</h3></a></a>
+      </nav>
+  </header>
   Pagina de resistencias
-  <div id="div">
-    <p>Estado: <span id="connection-status">Desconectado</span></p>
-    <p>Valor: <span id="data-display">--</span></p>
-  </div>
-  <script src="js/resistance.js"></script>
+  <body>
+    <!-- Asegúrate que este ID coincida con el que usas en JS -->
+    <button id="connect-button">Conectar Arduino</button>
+    <div id="connection-status">Desconectado</div>
+    <div id="data-display">--</div>
+    
+    <script src="js/resistance.js"></script>
 </body>
 </html>
