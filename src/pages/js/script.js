@@ -303,6 +303,7 @@ function selectedCharge(cargaObjects, selectedCarga, _this) {
         if (carga !== selectedCarga) {
             const dist = carga.calculateDistance(selectedCarga.x, selectedCarga.y);
             let forceLocal = calculateForce(selectedCarga, carga, dist);
+            console.log("Fuerza local: ", forceLocal);
             let campLocal = forceLocal / selectedCarga.valor;
             x = carga.x - selectedCarga.x;
             y = carga.y - selectedCarga.y;
@@ -315,6 +316,9 @@ function selectedCharge(cargaObjects, selectedCarga, _this) {
               jLocal *= -1;
               c1 *= -1;
               c2 *= -1;
+            } else if(selectedCarga.valor < 0){
+              iLocal *= -1;
+              jLocal *= -1;
             }
 
             i += iLocal;
