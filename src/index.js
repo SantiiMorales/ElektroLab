@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { SerialPort } = require('serialport');
+const { ReadlineParser } = require('@serialport/parser-readline');
 
 const app = express();
 const PORT = 1234;
@@ -9,23 +10,19 @@ const PORT = 1234;
 app.use(express.static(path.join(__dirname, 'pages')));
 app.use(express.json());
 
-// Variables de estado
 let puertoSerial = null;
-let ultimoDato = "Dispositivo no conectado";
+let resistenciaActual = 0;
+let tolerancia = 5;
 
-// Ruta para iniciar conexión con Arduino
-app.post('/api/connect-arduino', async (req, res) => {
+// Función para conectar al Arduino
+async function conectarArduino() {
   try {
-    // Cerrar conexión existente si hay una
-    if (puertoSerial && puertoSerial.isOpen) {
-      puertoSerial.close();
-    }
-
     const ports = await SerialPort.list();
     const arduinoPort = ports.find(p => p.manufacturer?.includes('Arduino') || p.path.match(/COM[0-9]+/));
 
     if (!arduinoPort) {
-      return res.status(404).json({ error: "Arduino no encontrado" });
+      console.log('Arduino no encontrado');
+      return false;
     }
 
     puertoSerial = new SerialPort({
@@ -33,38 +30,51 @@ app.post('/api/connect-arduino', async (req, res) => {
       baudRate: 9600
     });
 
-    puertoSerial.on('open', () => {
-      console.log(`Conectado a ${arduinoPort.path}`);
-      ultimoDato = "Conectado, esperando datos...";
-    });
+    const parser = puertoSerial.pipe(new ReadlineParser({ delimiter: '\r\n' }));
 
-    puertoSerial.on('data', data => {
-      ultimoDato = data.toString().trim();
+    parser.on('data', data => {
+      const valor = parseFloat(data.trim());
+      if (!isNaN(valor)) {
+        resistenciaActual = valor;
+        console.log('Resistencia recibida:', resistenciaActual);
+      }
     });
 
     puertoSerial.on('error', err => {
-      console.error('Error:', err);
-      ultimoDato = "Error de conexión";
+      console.error('Error en puerto serial:', err);
     });
 
-    puertoSerial.on('close', () => {
-      ultimoDato = "Conexión cerrada";
-    });
-
-    res.json({ status: "Conectando", port: arduinoPort.path });
-
+    return true;
   } catch (err) {
     console.error('Error al conectar:', err);
-    res.status(500).json({ error: err.message });
+    return false;
+  }
+}
+
+// Ruta para obtener el valor actual
+app.get('/api/resistencia', (req, res) => {
+  res.json({
+    resistencia: resistenciaActual,
+    tolerancia: tolerancia
+  });
+});
+
+// Ruta para conectar/desconectar Arduino
+app.post('/api/conectar', async (req, res) => {
+  if (puertoSerial?.isOpen) {
+    puertoSerial.close();
+    res.json({ status: 'desconectado' });
+  } else {
+    const exito = await conectarArduino();
+    res.json({ status: exito ? 'conectado' : 'error' });
   }
 });
 
-// Ruta para obtener datos
-app.get('/api/serial-data', (req, res) => {
-  res.json({ 
-    data: ultimoDato,
-    status: puertoSerial?.isOpen ? "conectado" : "desconectado"
-  });
+// Ruta para cambiar tolerancia
+app.post('/api/tolerancia', (req, res) => {
+  const { valor } = req.body;
+  tolerancia = parseInt(valor) || 5;
+  res.json({ tolerancia });
 });
 
 // Rutas principales
@@ -74,5 +84,5 @@ app.get('/simulator', (req, res) => res.sendFile(path.join(__dirname, 'pages/sim
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
-  console.log('El servidor está activo, Arduino se conectará bajo demanda');
+  console.log('El servidor está listo. Conecta Arduino desde la interfaz web.');
 });

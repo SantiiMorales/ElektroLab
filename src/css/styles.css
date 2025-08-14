@@ -20,6 +20,10 @@ body {
     overflow-x: hidden; /* Evita barras de desplazamiento innecesarias en el body */
 }
 
+a, button, .remove-charge-btn, .carga-div, .carga-div input {
+    transition: all 0.3s ease-in-out;
+}
+
 header {
     display: flex;
     background-color: #0f3460; /* Un azul más oscuro que el fondo para el header */
@@ -51,7 +55,7 @@ header h2 {
 
 header a h3 {
     font-family: 'WDXL Lubrifont TC', sans-serif;
-    font-size: 1.5em; /* Aún más grande para destacar */
+    font-size: 1.8em; /* Aún más grande para destacar */
     letter-spacing: 3px; /* Más espacio entre letras */
     color: #fff; /* Azul eléctrico para el texto del título */
     transition: all 0.4s ease-in-out; /* Transición para todos los cambios */
@@ -62,6 +66,12 @@ header h2:hover {
     color: #ffffff; /* Blanco puro al pasar el ratón */
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 10px rgba(255, 255, 255, 0.7); /* Resplandor blanco más intenso */
     transform: scale(1.02); /* Ligeramente más grande al pasar el ratón */
+}
+
+header nav a:hover h3 {
+    color: #00f2fe; /* Azul eléctrico en hover para los enlaces de navegación */
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.7);
+    transform: scale(1.02);
 }
 
 /* Estilos generales para las secciones */
@@ -137,7 +147,7 @@ section ul p {
 }
 
 /* Estilos para las fórmulas matemáticas */
-/* math {
+math {
     display: inline;
     margin: 1rem 0;
     padding: 0.8rem 1.2rem;
@@ -146,7 +156,7 @@ section ul p {
     border-radius: 8px;
     border-left: 3px solid #4a80f0;
     font-size: 1.2rem;
-} */
+}
 
 .main-container {
     display: flex;
@@ -227,6 +237,21 @@ section ul p {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
+.add-charge-btn {
+    background-color: #00f2fe;
+    color: #1a1a2e;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+}
+
+.add-charge-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.8);
+}
+
 .carga-div {
     background-color: rgba(40, 40, 60, 0.7); /* Fondo un poco más claro y semi-transparente */
     border: 1px solid rgba(0, 242, 254, 0.2); /* Borde sutil */
@@ -279,6 +304,11 @@ section ul p {
     display: block; /* Ocupa su propia línea */
     margin: 15px auto 0 auto; /* Centra el botón */
     transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.carga-div:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.4), 0 8px 15px rgba(0, 0, 0, 0.3);
 }
 
 .carga-div button:hover {
@@ -417,4 +447,24 @@ this.settings = {
 a {
     text-decoration: none;
     color: #fff;
+}
+
+@media (max-width: 768px) {
+    .charge-controls {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    nav {
+        flex-direction: column;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
 }
