@@ -31,6 +31,120 @@ function formatWithPrefix(value) {
     return value.toExponential(2);
 }
 
+function createForceComponentsArrow(coordinateSystem, carga, forceX, forceY) {
+    // Eliminar flechas anteriores si existen
+    document.getElementById('force-x-arrow')?.remove();
+    document.getElementById('force-y-arrow')?.remove();
+    document.getElementById('force-dashed-lines')?.remove();
+
+    // Obtener coordenadas de inicio (posición de la carga)
+    const startCoords = coordinateSystem.canvasCoords(carga.x, carga.y);
+    
+    // Calcular coordenadas de fin para componentes y resultante
+    const scaleFactor = 1e8; // Mismo factor de escala que usas en createForceArrow
+    const endCoords = coordinateSystem.canvasCoords(
+        carga.x + forceX * scaleFactor,
+        carga.y + forceY * scaleFactor
+    );
+    const endXCoords = coordinateSystem.canvasCoords(
+        carga.x + forceX * scaleFactor,
+        carga.y
+    );
+    const endYCoords = coordinateSystem.canvasCoords(
+        carga.x,
+        carga.y + forceY * scaleFactor
+    );
+
+    // Crear contenedor SVG (si no existe)
+    let svg = document.getElementById('force-components-container');
+    if (!svg) {
+        svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute('id', 'force-components-container');
+        svg.style.position = 'absolute';
+        svg.style.top = '0';
+        svg.style.left = '0';
+        svg.style.width = '100%';
+        svg.style.height = '100%';
+        svg.style.pointerEvents = 'none';
+        coordinateSystem.canvas.parentElement.appendChild(svg);
+    }
+
+    // Definir marcadores de flecha (una vez)
+    if (!document.getElementById('arrowhead-red')) {
+        const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+        
+        // Marcador rojo (componente X)
+        const markerRed = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+        markerRed.setAttribute('id', 'arrowhead-red');
+        markerRed.setAttribute('markerWidth', '10');
+        markerRed.setAttribute('markerHeight', '7');
+        markerRed.setAttribute('refX', '9');
+        markerRed.setAttribute('refY', '3.5');
+        markerRed.setAttribute('orient', 'auto');
+        const arrowHeadRed = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        arrowHeadRed.setAttribute('points', '0 0, 10 3.5, 0 7');
+        arrowHeadRed.setAttribute('fill', 'red');
+        markerRed.appendChild(arrowHeadRed);
+        defs.appendChild(markerRed);
+
+        // Marcador azul (componente Y)
+        const markerBlue = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+        markerBlue.setAttribute('id', 'arrowhead-blue');
+        // ... (misma configuración pero con fill="blue")
+        defs.appendChild(markerBlue);
+
+        svg.appendChild(defs);
+    }
+
+    // Dibujar componente X (roja)
+    const lineX = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    lineX.setAttribute('id', 'force-x-arrow');
+    lineX.setAttribute('x1', startCoords[0]);
+    lineX.setAttribute('y1', startCoords[1]);
+    lineX.setAttribute('x2', endXCoords[0]);
+    lineX.setAttribute('y2', endXCoords[1]);
+    lineX.setAttribute('stroke', 'red');
+    lineX.setAttribute('stroke-width', '2');
+    lineX.setAttribute('marker-end', 'url(#arrowhead-red)');
+    svg.appendChild(lineX);
+
+    // Dibujar componente Y (azul)
+    const lineY = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    lineY.setAttribute('id', 'force-y-arrow');
+    // ... (similar a lineX pero con coordenadas Y y color azul)
+    svg.appendChild(lineY);
+
+    // Dibujar líneas punteadas auxiliares
+    const dashedLines = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    dashedLines.setAttribute('id', 'force-dashed-lines');
+    
+    const lineDash1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    lineDash1.setAttribute('x1', endXCoords[0]);
+    lineDash1.setAttribute('y1', endXCoords[1]);
+    lineDash1.setAttribute('x2', endCoords[0]);
+    lineDash1.setAttribute('y2', endCoords[1]);
+    lineDash1.setAttribute('stroke', 'gray');
+    lineDash1.setAttribute('stroke-width', '1');
+    lineDash1.setAttribute('stroke-dasharray', '5,3');
+    
+    const lineDash2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    // ... (similar para la otra línea punteada)
+    
+    dashedLines.appendChild(lineDash1);
+    dashedLines.appendChild(lineDash2);
+    svg.appendChild(dashedLines);
+
+    // Actualizar al hacer zoom/pan (igual que en tu función original)
+    coordinateSystem.canvas.addEventListener('redraw', function() {
+        const newStart = coordinateSystem.canvasCoords(carga.x, carga.y);
+        const newEndX = coordinateSystem.canvasCoords(
+            carga.x + forceX * scaleFactor,
+            carga.y
+        );
+        // ... (actualizar todas las coordenadas)
+    });
+}
+
 function Matrix(entries) {
         this.entries = entries
         this.rows = this.entries.length
@@ -196,10 +310,12 @@ function selectedCharge(cargaObjects, selectedCarga, _this) {
             let [iLocal, jLocal] = vectorialForce(forceLocal, x, y);
             let [c1, c2] = vectorialCamp(campLocal, x, y);
 
-            iLocal *= -1;
-            jLocal *= -1;
-            c1 *= -1;
-            c2 *= -1;
+            if(selectedCarga.valor > 0){
+              iLocal *= -1;
+              jLocal *= -1;
+              c1 *= -1;
+              c2 *= -1;
+            }
 
             i += iLocal;
             j += jLocal;
@@ -227,16 +343,26 @@ function selectedCharge(cargaObjects, selectedCarga, _this) {
 
     infoDiv.style.display = 'flex';
 
-    // Guardar datos de la flecha para redibujado persistente
+    // Guardar datos de todas las flechas (resultante y componentes)
     _this.arrowData = {
         start: { x: selectedCarga.x, y: selectedCarga.y },
         end: { 
             x: selectedCarga.x + toScientificNotation(cI), 
             y: selectedCarga.y + toScientificNotation(cJ) 
+        },
+        components: {
+            x: { 
+                x: selectedCarga.x + toScientificNotation(cI), 
+                y: selectedCarga.y 
+            },
+            y: { 
+                x: selectedCarga.x, 
+                y: selectedCarga.y + toScientificNotation(cJ) 
+            }
         }
     };
     
-    _this.draw(); // Redibujar todo, incluyendo la flecha
+    _this.draw(); // Redibujar todo, incluyendo las flechas
 }
 
 function createForceArrow(coordinateSystem, carga, forceX, forceY) {
@@ -399,14 +525,16 @@ class CoordinateSystem {
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top; 
             const [worldX, worldY] = this.fromCanvasCoords(mouseX, mouseY);
-            this.cargasObjects.forEach(carga => {
-              if(carga.x == Math.round(worldX) && carga.y == Math.round(worldY)){
-                selectedCarga = carga;
-                carga.focused = true;
-              } else {
-                carga.focused = false;
-              }
-            });
+            if(this.cargasObjects.length > 1){
+              this.cargasObjects.forEach(carga => {
+                if(carga.x == Math.round(worldX) && carga.y == Math.round(worldY)){
+                  selectedCarga = carga;
+                  carga.focused = true;
+                } else {
+                  carga.focused = false;
+                }
+              });
+            }
 
             if(selectedCarga){
                 selectedCharge(this.cargasObjects, selectedCarga, this);
@@ -452,6 +580,81 @@ class CoordinateSystem {
 
         this.draw();
     }
+
+    drawArrow() {
+      if (!this.arrowData) return;
+      const { start, end, components } = this.arrowData;
+
+      // Convertir coordenadas del mundo a canvas
+      const startCoords = this.canvasCoords(start.x, start.y);
+      const endCoords = this.canvasCoords(end.x, end.y);
+      const xCompCoords = this.canvasCoords(components.x.x, components.x.y);
+      const yCompCoords = this.canvasCoords(components.y.x, components.y.y);
+
+      // Dibujar componentes primero (para que queden detrás de la resultante)
+      this.drawSingleArrow(startCoords, xCompCoords, 'red'); // Componente X
+      this.drawSingleArrow(startCoords, yCompCoords, 'blue'); // Componente Y
+      
+      // Dibujar líneas punteadas para el paralelogramo
+      this.context.save();
+      this.context.setLineDash([5, 3]);
+      this.context.strokeStyle = 'gray';
+      this.context.lineWidth = 1 / this.zoomLevel;
+      
+      // Línea desde componente X hasta resultante
+      this.context.beginPath();
+      this.context.moveTo(xCompCoords[0], xCompCoords[1]);
+      this.context.lineTo(endCoords[0], endCoords[1]);
+      this.context.stroke();
+      
+      // Línea desde componente Y hasta resultante
+      this.context.beginPath();
+      this.context.moveTo(yCompCoords[0], yCompCoords[1]);
+      this.context.lineTo(endCoords[0], endCoords[1]);
+      this.context.stroke();
+      
+      this.context.setLineDash([]);
+      this.context.restore();
+      
+      // Dibujar resultante (verde) encima de todo
+      this.drawSingleArrow(startCoords, endCoords, 'green');
+  }
+
+  drawSingleArrow(startCoords, endCoords, color) {
+    if (!startCoords || !endCoords || startCoords.length < 2 || endCoords.length < 2) {
+        console.error("Coordenadas inválidas para drawSingleArrow");
+        return;
+    }
+    const arrowLength = 10 / this.zoomLevel;
+    const arrowAngle = Math.PI / 6;
+    const angle = Math.atan2(endCoords[1] - startCoords[1], endCoords[0] - startCoords[0]);
+
+    this.context.save();
+    
+    // Línea principal
+    this.context.beginPath();
+    this.context.moveTo(startCoords[0], startCoords[1]);
+    this.context.lineTo(endCoords[0], endCoords[1]);
+    this.context.strokeStyle = color;
+    this.context.lineWidth = 3 / this.zoomLevel;
+    this.context.stroke();
+
+    // Cabeza de flecha
+    const x1 = endCoords[0] - arrowLength * Math.cos(angle + arrowAngle);
+    const y1 = endCoords[1] - arrowLength * Math.sin(angle + arrowAngle);
+    const x2 = endCoords[0] - arrowLength * Math.cos(angle - arrowAngle);
+    const y2 = endCoords[1] - arrowLength * Math.sin(angle - arrowAngle);
+
+    this.context.beginPath();
+    this.context.moveTo(endCoords[0], endCoords[1]);
+    this.context.lineTo(x1, y1);
+    this.context.lineTo(x2, y2);
+    this.context.closePath();
+    this.context.fillStyle = color;
+    this.context.fill();
+    
+    this.context.restore();
+}
 
     drawArrowSVG(startX, startY, endX, endY) {
       this.clearArrows();  

@@ -10,6 +10,7 @@ body {
     margin: 0;
     padding: 0;
     height: 100vh;
+    max-width: 100vw;
     display: flex;
     flex-direction: column;
     /* Degradado de fondo con tonos oscuros y tecnológicos */
@@ -17,6 +18,10 @@ body {
     background-attachment: fixed;
     color: #e0e0e0; /* Color de texto claro para buen contraste */
     overflow-x: hidden; /* Evita barras de desplazamiento innecesarias en el body */
+}
+
+a, button, .remove-charge-btn, .carga-div, .carga-div input {
+    transition: all 0.3s ease-in-out;
 }
 
 header {
@@ -50,9 +55,9 @@ header h2 {
 
 header a h3 {
     font-family: 'WDXL Lubrifont TC', sans-serif;
-    font-size: 1.5em; /* Aún más grande para destacar */
+    font-size: 1.8em; /* Aún más grande para destacar */
     letter-spacing: 3px; /* Más espacio entre letras */
-    color: #000269; /* Azul eléctrico para el texto del título */
+    color: #fff; /* Azul eléctrico para el texto del título */
     transition: all 0.4s ease-in-out; /* Transición para todos los cambios */
     margin: 0 0.4rem; /* Espacio entre los enlaces */
 }
@@ -61,6 +66,12 @@ header h2:hover {
     color: #ffffff; /* Blanco puro al pasar el ratón */
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 10px rgba(255, 255, 255, 0.7); /* Resplandor blanco más intenso */
     transform: scale(1.02); /* Ligeramente más grande al pasar el ratón */
+}
+
+header nav a:hover h3 {
+    color: #00f2fe; /* Azul eléctrico en hover para los enlaces de navegación */
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.7);
+    transform: scale(1.02);
 }
 
 /* Estilos generales para las secciones */
@@ -137,18 +148,15 @@ section ul p {
 
 /* Estilos para las fórmulas matemáticas */
 math {
-    display: inline-block;
+    display: inline;
     margin: 1rem 0;
     padding: 0.8rem 1.2rem;
+    width: 10px;
     background: rgba(74, 128, 240, 0.1);
     border-radius: 8px;
     border-left: 3px solid #4a80f0;
     font-size: 1.2rem;
 }
-
-
-
-
 
 .main-container {
     display: flex;
@@ -160,22 +168,28 @@ math {
 }
 
 .canvas-container {
-    flex: 0 0 70%;
+    flex: 1 0 70%;
     background-color: rgba(10, 10, 20, 0.7); /* Fondo semi-transparente oscuro para el canvas */
     border-radius: 10px; /* Bordes redondeados */
     overflow: hidden; /* Asegura que el canvas no se salga de los bordes redondeados */
     box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.2), 0 0 20px rgba(0, 242, 254, 0.3); /* Sombra interior y exterior con resplandor azul */
     border: 1px solid rgba(0, 242, 254, 0.5); /* Borde sutil azul */
+    max-width: max-content;
 }
 
 .panel-container {
     flex: 0 0 30%;
     padding: 20px;
     background-color: rgba(30, 30, 50, 0.8); /* Fondo oscuro semi-transparente */
-    overflow-y: auto;
+    overflow-y: hidden;
     border-radius: 10px; /* Bordes redondeados */
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Sombra para el panel */
     border: 1px solid rgba(0, 242, 254, 0.3); /* Borde sutil azul */
+    max-width: max-content;
+}
+
+.panel-container:hover {
+    overflow-y: scroll; 
 }
 
 #physicsCanvas {
@@ -221,6 +235,21 @@ math {
 .charge-btn:active {
     transform: translateY(0); /* Vuelve a la posición normal al hacer clic */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.add-charge-btn {
+    background-color: #00f2fe;
+    color: #1a1a2e;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+}
+
+.add-charge-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.8);
 }
 
 .carga-div {
@@ -275,6 +304,11 @@ math {
     display: block; /* Ocupa su propia línea */
     margin: 15px auto 0 auto; /* Centra el botón */
     transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.carga-div:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.4), 0 8px 15px rgba(0, 0, 0, 0.3);
 }
 
 .carga-div button:hover {
@@ -341,7 +375,7 @@ math {
     margin-top: 10px;
     margin-left: 10px;
     max-width: 50%;
-    /* display: none; */ /* El JS lo controlará */
+    display: none;
     justify-content: center;
     flex-direction: column;
     align-items: center;
@@ -350,7 +384,7 @@ math {
     padding: 20px 25px; /* Más padding */
     background-color: rgba(10, 10, 20, 0.85); /* Fondo muy oscuro y semi-transparente */
     position: absolute;
-    top: 20px; /* Separado del borde superior */
+    top: 85px; /* Separado del borde superior */
     left: 20px; /* Separado del borde izquierdo */
     color: #00f2fe; /* Color principal de texto para la información */
     box-shadow: 0 0 25px rgba(0, 242, 254, 0.4), inset 0 0 10px rgba(0, 242, 254, 0.2); /* Sombra con resplandor */
@@ -361,7 +395,6 @@ math {
 }
 
 .info-span {
-    padding: 5px 0; /* Más espacio vertical entre los spans */
     font-size: 1em; /* Ajusta el tamaño de fuente si es necesario */
     font-weight: normal; /* Normaliza el peso de la fuente, el bold solo en etiquetas */
     text-align: center;
@@ -370,7 +403,7 @@ math {
 }
 
 .info-span:first-child {
-    font-size: 1.1em;
+    font-size: 1em;
     font-weight: bold;
     color: #00f2fe; /* Destaca el título "Carga evaluada" */
     margin-bottom: 10px;
@@ -414,4 +447,24 @@ this.settings = {
 a {
     text-decoration: none;
     color: #fff;
+}
+
+@media (max-width: 768px) {
+    .charge-controls {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    nav {
+        flex-direction: column;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
 }
